@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import os
+from aiohttp import web
 from aiogram import Bot, Dispatcher, F, types
 from aiogram.filters import CommandStart
 from aiogram.fsm.context import FSMContext
@@ -90,8 +91,23 @@ async def generate_work(message: types.Message, state: FSMContext):
     await state.clear()
 
 
+# Render'ning bepul Web Service rejimi uchun soxta veb-server
+async def handle(request):
+    return web.Response(text="Bot is running!")
+
+
 async def main():
     logging.basicConfig(level=logging.INFO)
+
+    # Veb-serverni Render ajratgan PORT bilan ishga tushirish
+    app = web.Application()
+    app.router.add_get("/", handle)
+    runner = web.AppRunner(app)
+    await runner.setup()
+    port = int(os.getenv("PORT", 8080))
+    site = web.TCPSite(runner, "0.0.0.0", port)
+    await site.start()
+
     await bot.delete_webhook(drop_pending_updates=True)
     await dp.start_polling(bot)
 
