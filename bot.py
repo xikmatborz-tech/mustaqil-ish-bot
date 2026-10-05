@@ -73,7 +73,7 @@ async def generate_work(message: types.Message, state: FSMContext):
 
     try:
         response = await client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
+            model="llama3-70b-8192",
             messages=[{"role": "user", "content": prompt}],
         )
         result_text = response.choices[0].message.content
@@ -110,5 +110,4 @@ async def main():
     await dp.start_polling(bot)
 
 
-# Ishga tushirish (xatosiz variant)
 asyncio.run(main())
