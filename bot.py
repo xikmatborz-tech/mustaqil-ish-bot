@@ -91,7 +91,6 @@ async def generate_work(message: types.Message, state: FSMContext):
     await state.clear()
 
 
-# Render'ning bepul Web Service rejimi uchun soxta veb-server
 async def handle(request):
     return web.Response(text="Bot is running!")
 
@@ -99,7 +98,6 @@ async def handle(request):
 async def main():
     logging.basicConfig(level=logging.INFO)
 
-    # Veb-serverni Render ajratgan PORT bilan ishga tushirish
     app = web.Application()
     app.router.add_get("/", handle)
     runner = web.AppRunner(app)
