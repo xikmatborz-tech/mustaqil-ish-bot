@@ -7,14 +7,14 @@ from aiogram.filters import CommandStart
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.storage.memory import MemoryStorage
-from groq import AsyncGroq
+from google import genai
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher(storage=MemoryStorage())
-client = AsyncGroq(api_key=GROQ_API_KEY)
+client = genai.Client(api_key=GEMINI_API_KEY)
 
 
 class MustaqilIshState(StatesGroup):
@@ -71,42 +71,21 @@ async def generate_work(message: types.Message, state: FSMContext):
     Format o'zbek tilida, professional va tushunarli uslubda bo'lsin.
     """
 
-    # Groq'dagi eng faol modellar ro'yxati (biri ishlamasa avtomatik keyingisiga o'tadi)
-    models_to_try = [
-        "llama-3.3-70b-versatile",
-        "llama3-8b-8192",
-        "llama-3.2-3b-preview",
-        "llama-3.2-1b-preview",
-        "mixtral-8x7b-32768",
-        "gemma2-9b-it",
-    ]
+    try:
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=prompt,
+        )
+        result_text = response.text
 
-    result_text = None
-
-    for model_name in models_to_try:
-        try:
-            response = await client.chat.completions.create(
-                model=model_name,
-                messages=[{"role": "user", "content": prompt}],
-            )
-            result_text = response.choices[0].message.content
-            break  # Muvaffaqiyatli javob olinsa sikldan chiqiladi
-        except Exception as e:
-            logging.warning(
-                f"Model {model_name} ishlamadi: {e}. Keyingi model sinab ko'rilmoqda..."
-            )
-            continue
-
-    if result_text:
         if len(result_text) > 4000:
             for i in range(0, len(result_text), 4000):
                 await message.answer(result_text[i : i + 4000])
         else:
             await message.answer(result_text)
-    else:
-        await message.answer(
-            "Xatolik yuz berdi: Hozircha birorta AI model javob bera olmadi. Iltimos, Groq API kalitini va ulangan modellarni tekshiring."
-        )
+
+    except Exception as e:
+        await message.answer(f"Xatolik yuz berdi: {e}")
 
     await status_msg.delete()
     await state.clear()
