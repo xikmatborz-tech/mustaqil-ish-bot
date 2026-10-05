@@ -71,21 +71,38 @@ async def generate_work(message: types.Message, state: FSMContext):
     Format o'zbek tilida, professional va tushunarli uslubda bo'lsin.
     """
 
-    try:
-        response = client.models.generate_content(
-            model="gemini-3.8-flash",
-            contents=prompt,
-        )
-        result_text = response.text
+    # Model band bo'lsa, qayta urinish va zahiradagi modelga o'tish
+    models_to_try = ["gemini-3.8-flash", "gemini-2.5-flash", "gemini-1.5-flash"]
+    result_text = None
 
+    for model_name in models_to_try:
+        for attempt in range(2):  # Har bir modelni 2 martadan sinaydi
+            try:
+                response = client.models.generate_content(
+                    model=model_name,
+                    contents=prompt,
+                )
+                result_text = response.text
+                if result_text:
+                    break
+            except Exception as e:
+                logging.warning(
+                    f"{model_name} (urinish {attempt+1}) xatosi: {e}"
+                )
+                await asyncio.sleep(2)  # 2 soniya kutib qayta urinadi
+        if result_text:
+            break
+
+    if result_text:
         if len(result_text) > 4000:
             for i in range(0, len(result_text), 4000):
                 await message.answer(result_text[i : i + 4000])
         else:
             await message.answer(result_text)
-
-    except Exception as e:
-        await message.answer(f"Xatolik yuz berdi: {e}")
+    else:
+        await message.answer(
+            "Hozirda Google AI serverlari juda band. Iltimos, 1-2 daqiqadan so'ng qayta urinib ko'ring."
+        )
 
     await status_msg.delete()
     await state.clear()
