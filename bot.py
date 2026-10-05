@@ -73,7 +73,7 @@ async def generate_work(message: types.Message, state: FSMContext):
 
     try:
         response = client.models.generate_content(
-            model="gemini-2.5-flash",
+            model="gemini-3.8-flash",
             contents=prompt,
         )
         result_text = response.text
@@ -110,4 +110,5 @@ async def main():
     await dp.start_polling(bot)
 
 
-asyncio.run(main())
+if name == "main":
+    asyncio.run(main())
