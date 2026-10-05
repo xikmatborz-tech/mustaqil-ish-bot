@@ -6,17 +6,14 @@ from aiogram.filters import CommandStart
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.storage.memory import MemoryStorage
-from dotenv import load_dotenv
-from openai import AsyncOpenAI
-
-load_dotenv()
+from groq import AsyncGroq
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher(storage=MemoryStorage())
-client = AsyncOpenAI(api_key=OPENAI_API_KEY)
+client = AsyncGroq(api_key=GROQ_API_KEY)
 
 
 class MustaqilIshState(StatesGroup):
@@ -75,7 +72,7 @@ async def generate_work(message: types.Message, state: FSMContext):
 
     try:
         response = await client.chat.completions.create(
-            model="gpt-4o-mini",
+            model="llama-3.3-70b-versatile",
             messages=[{"role": "user", "content": prompt}],
         )
         result_text = response.choices[0].message.content
