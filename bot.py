@@ -110,5 +110,5 @@ async def main():
     await dp.start_polling(bot)
 
 
-if name == "main":
-    asyncio.run(main())
+# Ishga tushirish (xatosiz variant)
+asyncio.run(main())
